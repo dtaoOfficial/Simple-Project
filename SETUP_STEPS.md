@@ -122,8 +122,52 @@ php artisan make:filament-user
 - Name: `mahesh`, Email: `admin@gmail.com`
 - Logged in successfully at `http://simple-project.test/admin` ✅
 
+## Phase 7 — Filament Shield (Roles & Permissions)
+
+```bash
+composer require bezhansalleh/filament-shield
+```
+- Also pulls in `spatie/laravel-permission` automatically
+
+```bash
+php artisan vendor:publish --tag="filament-shield-config"
+php artisan shield:install
+php artisan shield:setup
+```
+- Panel: `admin`
+- Multi-tenancy: `no`
+- Publishes `create_permission_tables` migration (roles, permissions, model_has_roles, etc.)
+- Adds `use Spatie\Permission\Traits\HasRoles;` + `HasRoles` trait to `app/Models/User.php` automatically
+
+```bash
+php artisan shield:generate --all
+```
+- Generated 3 policies (Customer, Programme, Role) + 36 permissions for existing resources
+
+```bash
+php artisan shield:super-admin --user=1
+```
+- Made `admin@gmail.com` (user id 1) a Super Admin — bypasses all permission checks
+
+## Phase 7b — Auto-generate Filament Resources
+
+```bash
+php artisan make:filament-resource Customer --generate
+php artisan make:filament-resource Programme --generate
+php artisan make:filament-resource User --generate
+```
+- `--generate` auto-builds the form/table fields by reading the existing DB columns
+- Title attribute: `name` for Customer/Programme, `name` for User
+- Generated "read-only view page" too (yes) for each
+- Result: `/admin` now has Customers, Programmes, Users nav items — full CRUD, no manual coding needed
+
+**Note:** Refactored `ProgrammeController` to pull validation into its own `validation()` method, called via `$this->validation($request)` in `store()`/`update()` — reduces duplicate validation rules.
+
+Verified both sides still work after all this:
+- `/admin/programmes` (Filament) — create/view working ✅
+- `/programmes` (our custom Inertia page) — still working ✅
+
 **Next steps (not done yet):**
-- [ ] Install Spatie permissions + Filament Shield (roles/access control)
 - [ ] Build Event Settings as a Filament Resource (singleton config table)
 - [ ] Build Registrations as a Filament Resource (linked to Programmes)
 - [ ] Production prep (build, optimize) + server hosting (no Docker) + Nginx + SSL

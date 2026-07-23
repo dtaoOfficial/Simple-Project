@@ -8,12 +8,24 @@ use Illuminate\Http\Request;
 
 class ProgrammeController extends Controller
 {
+    public function validation(Request $request)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'required|string',
+            'schedule' => 'required|string|max:255',
+            'activities' => 'required|string',
+            'outcomes' => 'required|string',
+        ]);
+
+        return $validated;
+    }
     /**
      * Display a listing of the resource.
      */
     public function index()
     {
-          $programmes = Programme::latest()->get();
+        $programmes = Programme::latest()->get();
 
         return Inertia::render('programmes/index', [
             'programmes' => $programmes,
@@ -26,7 +38,6 @@ class ProgrammeController extends Controller
     public function create()
     {
         return Inertia::render('programmes/create');
-
     }
 
     /**
@@ -34,15 +45,9 @@ class ProgrammeController extends Controller
      */
     public function store(Request $request)
     {
-        $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'schedule' => 'required|string|max:255',
-            'activities' => 'required|string',
-            'outcomes' => 'required|string',
-        ]);
+        $newData = $this->validation($request);
 
-        Programme::create($validated);
+        Programme::create($newData);
 
         return redirect()->route('programmes.index');
     }
@@ -70,15 +75,9 @@ class ProgrammeController extends Controller
      */
     public function update(Request $request, Programme $programme)
     {
-            $validated = $request->validate([
-            'name' => 'required|string|max:255',
-            'description' => 'required|string',
-            'schedule' => 'required|string|max:255',
-            'activities' => 'required|string',
-            'outcomes' => 'required|string',
-        ]);
+        $updateData = $this->validation($request);
 
-        $programme->update($validated);
+        $programme->update($updateData);
 
         return redirect()->route('programmes.index');
     
@@ -89,7 +88,7 @@ class ProgrammeController extends Controller
      */
     public function destroy(Programme $programme)
     {
-         $programme->delete();
+        $programme->delete();
 
         return redirect()->route('programmes.index');
     }
