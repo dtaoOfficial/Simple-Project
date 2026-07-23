@@ -167,8 +167,49 @@ Verified both sides still work after all this:
 - `/admin/programmes` (Filament) — create/view working ✅
 - `/programmes` (our custom Inertia page) — still working ✅
 
+## Phase 8 — Event Settings (singleton config table)
+
+**Concept:** unlike Customers/Programmes (many rows), this table should only ever have ONE row (site-wide config: dates, fees, timings, phone, age range). Approach: normal table + a Seeder to create the single row + Filament Resource (kept simple for now — just don't add more than 1 row via admin).
+
+```bash
+php artisan make:model EventSetting -m
+```
+Migration columns added:
+```php
+$table->date('start_date');
+$table->date('end_date');
+$table->string('timings');
+$table->decimal('fee', 8, 2);   // decimal for money, never float
+$table->string('phone');
+$table->unsignedInteger('min_age');
+$table->unsignedInteger('max_age');
+```
+```bash
+php artisan migrate
+```
+
+`app/Models/EventSetting.php` — added `$fillable` for all 7 fields.
+
+**Seeder** (matches README's `EventSettingSeeder`):
+```bash
+php artisan make:seeder EventSettingSeeder
+```
+- Fills in one row of sample data via `EventSetting::create([...])`
+- Registered in `DatabaseSeeder.php` via `$this->call([EventSettingSeeder::class]);`
+```bash
+php artisan db:seed --class=EventSettingSeeder
+```
+- Verified: `EventSetting::count()` → `1` row ✅
+
+**Filament Resource:**
+```bash
+php artisan make:filament-resource EventSetting --generate
+```
+- Title attribute: `timings`
+- Read-only view page: yes
+
 **Next steps (not done yet):**
-- [ ] Build Event Settings as a Filament Resource (singleton config table)
+- [ ] Verify Event Settings shows correctly in `/admin`
 - [ ] Build Registrations as a Filament Resource (linked to Programmes)
 - [ ] Production prep (build, optimize) + server hosting (no Docker) + Nginx + SSL
 
