@@ -208,10 +208,37 @@ php artisan make:filament-resource EventSetting --generate
 - Title attribute: `timings`
 - Read-only view page: yes
 
-**Next steps (not done yet):**
-- [ ] Verify Event Settings shows correctly in `/admin`
-- [ ] Build Registrations as a Filament Resource (linked to Programmes)
-- [ ] Production prep (build, optimize) + server hosting (no Docker) + Nginx + SSL
+Verified in `/admin` ✅ — pushed.
+
+## Phase 9 — Registrations (relationship / foreign key)
+
+```bash
+php artisan make:model Registration -m
+```
+Migration: `child_name`, `child_age`, `parent_name`, `parent_email`, `parent_phone`, `foreignId('programme_id')->constrained()->cascadeOnDelete()`, `payment_status` (default `pending`), `payment_amount` (decimal).
+
+`app/Models/Registration.php` — `$fillable` + `belongsTo(Programme::class)` relationship.
+`app/Models/Programme.php` — added `hasMany(Registration::class)` (reverse side).
+
+```bash
+php artisan make:filament-resource Registration --generate
+```
+- Title attribute: `child_name`, read-only view page: yes
+- **Fixed manually:** `--generate` doesn't auto-detect relationships — had to change `programme_id` from a plain `TextInput` to `Select::make('programme_id')->relationship('programme', 'name')->searchable()->preload()` in both `RegistrationForm.php` (create/edit form) and `RegistrationsTable.php` (list column: `programme.name`). Also changed `payment_status` to a fixed dropdown (pending/paid/failed) instead of free text.
+
+Tested full flow in `/admin/registrations` — dropdown shows Programme names correctly, payment status dropdown works ✅
+
+## Phase 10 — Production Prep (validated locally, not yet deployed)
+
+```bash
+npm run build                              # compiles production frontend assets
+composer install --no-dev --optimize-autoloader   # strips dev-only packages
+```
+Both succeeded. Restored dev tools afterward with plain `composer install` to keep developing locally.
+
+**Deployment steps** (for when the server is ready) are documented separately in **`DEPLOYMENT.md`** — covers server requirements, Nginx config (document root = `public/`), `.env` setup, migrations, folder permissions, subdomain + SSL via Certbot.
+
+**Status: all local development + admin panel done. Waiting on live server to execute `DEPLOYMENT.md`.**
 
 ---
 
