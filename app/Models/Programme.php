@@ -13,4 +13,9 @@ class Programme extends Model
         'activities',
         'outcomes',
     ];
+
+    public function registrations()
+{
+    return $this->hasMany(Registration::class);
+}
 }
